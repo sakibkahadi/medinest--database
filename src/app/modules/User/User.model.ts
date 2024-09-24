@@ -12,7 +12,7 @@ const userSchema = new Schema<TUser, UserStatic>({
 
    role:{
         type:String,
-        enum:  ['admin' , 'patient' , 'doctor'],
+        enum:  ['admin' , 'patient' , 'doctor', 'nurse'],
        required:true
     },
     status:{

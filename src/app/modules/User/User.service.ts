@@ -9,16 +9,11 @@ import { TDoctor } from "../Doctor/Doctor.interface";
 import mongoose from "mongoose";
 import { DoctorModel } from "../Doctor/Doctor.model";
 import { DepartmentModel } from "../Department/Department.model";
+import { TNurse } from "../Nurse/Nurse.interface";
+import { NurseModel } from "../Nurse/Nurse.model";
+import { TPatient } from "../Patient/Patient.interface";
+import { PatientModel } from "../Patient/Patient.model";
 
-const createUserIntoDB = async(payload:TUser)=>{
-    const isUserExist = await UserModel.findOne({email:payload.email})
-    if(isUserExist){
-        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'User is Already exists')
-    }
-    
-    const result = await UserModel.create(payload)
-    return result
-}
 
 const getAllUserFromDB= async()=>{
     const result = await UserModel.find()
@@ -50,10 +45,7 @@ const createDoctorIntoDB = async(payload:TDoctor)=>{
     const userData: Partial<TUser>={};
     userData.password = '123'
     userData.role = 'doctor'
-    
-   
-   
-   
+
     const session = await mongoose.startSession();
     try{
         session.startTransaction();
@@ -87,7 +79,83 @@ const createDoctorIntoDB = async(payload:TDoctor)=>{
         throw new Error(err)
     }
 }
+const createNurseIntoDB = async(payload:TNurse)=>{
+    const userData: Partial<TUser>={};
+    userData.password = '123'
+    userData.role = 'nurse'
+    const session = await mongoose.startSession();
+    try{
+        session.startTransaction();
+      
+        // create a user
+        const newUser = await UserModel.create([userData], {session})
 
+        if(!newUser.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
+        }
+
+        payload.user = newUser[0]._id
+
+        //check department
+        
+    
+   //check doctor
+   const isDoctorExist = await DoctorModel.findOne({_id: payload.doctor})
+   if(!isDoctorExist){
+    throw new AppError(httpStatus.BAD_REQUEST, 'Doctor is not exist')
+   }
+
+// check doctor department 
+   // Set nurse's department to the doctor's department
+   payload.department = isDoctorExist?.department;
+
+        //create a Nurse 
+        const newNurse = await NurseModel.create([payload], {session})
+        if(!newNurse.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Nurse')
+        }
+        await session.commitTransaction();
+        await session.endSession()
+        return newNurse;
+    }catch(err:any){
+        await session.abortTransaction();
+        await session.endSession()
+        throw new Error(err)
+    }
+}
+const createPatientIntoDB = async(payload:TPatient)=>{
+    const userData: Partial<TUser>={};
+    userData.password = '1231'
+    userData.role = 'patient'
+    const session = await mongoose.startSession();
+    try{
+        session.startTransaction();
+      
+        // create a user
+        const newUser = await UserModel.create([userData], {session})
+
+        if(!newUser.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
+        }
+
+        payload.user = newUser[0]._id
+
+      
+
+        //create a Nurse 
+        const newPatient = await PatientModel.create([payload], {session})
+        if(!newPatient.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Patient')
+        }
+        await session.commitTransaction();
+        await session.endSession()
+        return newPatient;
+    }catch(err:any){
+        await session.abortTransaction();
+        await session.endSession()
+        throw new Error(err)
+    }
+}
 export const UserService={
-    createUserIntoDB,  getAllUserFromDB, loginUser, createDoctorIntoDB
+  getAllUserFromDB, loginUser, createDoctorIntoDB, createNurseIntoDB, createPatientIntoDB
 } 

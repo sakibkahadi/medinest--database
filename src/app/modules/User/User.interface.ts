@@ -7,7 +7,7 @@ export type TUser = {
     
     password:string,
   
-    role: 'admin' | 'patient' | 'doctor'
+    role: 'admin' | 'patient' | 'doctor' | 'nurse' 
     status: 'active' | 'blocked' | 'in-progress'
     isDeleted: boolean,
     notification: string[]

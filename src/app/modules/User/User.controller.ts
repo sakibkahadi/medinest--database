@@ -4,15 +4,7 @@ import { UserService } from "./User.service";
 import sendResponse from "../../utils/sendResponse";
 
 
-const createUser = catchAsync(async (req,res)=>{
-    const result = await UserService.createUserIntoDB(req.body)
-    sendResponse(res,{
-        statusCode:httpStatus.OK,
-        success:true,
-        message: 'User Created Successfully',
-        data:result
-    })
-})
+
 const getAllUsers = catchAsync(async (req,res)=>{
     const result = await UserService.getAllUserFromDB()
     sendResponse(res,{
@@ -44,7 +36,27 @@ const createDoctor = catchAsync(async(req,res)=>{
         data:result
     })
 })
+const createNurse = catchAsync(async(req,res)=>{
+ 
+    const result = await UserService.createNurseIntoDB(req.body);
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message:'Nurse is create successfully',
+        data:result
+    })
+})
+const createPatient = catchAsync(async(req,res)=>{
+ 
+    const result = await UserService.createPatientIntoDB(req.body);
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message:'Patient is create successfully',
+        data:result
+    })
+})
 
 export const UserControllers={
-    createUser, getAllUsers, loginUser, createDoctor
+     getAllUsers, loginUser, createDoctor, createNurse, createPatient
 }
