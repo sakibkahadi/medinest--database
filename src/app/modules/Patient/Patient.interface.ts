@@ -6,7 +6,7 @@ export type TPatient={
     user:Types.ObjectId;
     name:string;
     email:string;
-    
+    image:string;
     address?:string;
     contactNo?:string;
     sex?: 'male' | 'female' | 'others';

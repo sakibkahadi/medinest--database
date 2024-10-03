@@ -2,14 +2,19 @@ import { model, Schema } from "mongoose";
 import { TUser, UserStatic } from "./User.interface";
 import bcrypt from 'bcrypt'
 import config from "../../config";
+import { string } from "zod";
 
 const userSchema = new Schema<TUser, UserStatic>({
-              
+        email:{
+type:String, require:true, unique:true
+        }   ,   
     password:{
         type:String,
         required:true
     },
-
+    image:{
+type:String, required:true
+    },
    role:{
         type:String,
         enum:  ['admin' , 'patient' , 'doctor', 'nurse'],
@@ -33,7 +38,14 @@ const userSchema = new Schema<TUser, UserStatic>({
     },bloodDonor:{
         type:Boolean,
         default:false
-    }
+    },otp: {
+        type: String,
+        required: false,
+      },
+      otpExpiration: {
+        type: undefined || Number,
+        required: false,
+      }
 }, {
     timestamps:true,
     toJSON:{

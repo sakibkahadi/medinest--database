@@ -1,10 +1,11 @@
 
 import  { model, Schema } from "mongoose"
+import { TAdmin } from "./Admin.interface"
 
-import { TPatient } from "./Patient.interface"
 
 
-const patientSchema = new Schema<TPatient>({
+
+const adminSchema = new Schema<TAdmin>({
     user:{
        type: Schema.Types.ObjectId, ref: 'User',
         required:[true,  'userId is required'], unique:true,
@@ -18,6 +19,7 @@ const patientSchema = new Schema<TPatient>({
         required:[true, ' is required'],
         unique:true
     },
+
     image:{
         type:String, required:[true, ' is required'],
     },
@@ -55,5 +57,5 @@ bloodGroup:{
 
 }, {timestamps:true})
 
-export const PatientModel = model<TPatient>('Patient', patientSchema)
+export const AdminModel = model<TAdmin>('Admin', adminSchema)
 

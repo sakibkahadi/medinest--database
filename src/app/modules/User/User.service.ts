@@ -13,12 +13,19 @@ import { TNurse } from "../Nurse/Nurse.interface";
 import { NurseModel } from "../Nurse/Nurse.model";
 import { TPatient } from "../Patient/Patient.interface";
 import { PatientModel } from "../Patient/Patient.model";
+import { TAdmin } from "../Admin/Admin.interface";
+import { AdminModel } from "../Admin/Admin.model";
+import { sendEmail } from "../../utils/sendEmail";
+import bcrypt from 'bcrypt'; // Import bcrypt
+import admin from 'firebase-admin'
 
-
+//get all users
 const getAllUserFromDB= async()=>{
     const result = await UserModel.find()
     return result
 }
+
+//log in user
 const loginUser = async(payload:TLoginUser)=>{
     const isUserExist = await UserModel.findOne({email:payload?.email}).select('+password')
     if(!isUserExist){
@@ -40,12 +47,164 @@ const loginUser = async(payload:TLoginUser)=>{
     return {accessToken, isUserExist}
 }
 
+//forget password
+const forgetPassword = async (email: string) => {
+    const isUserExist = await UserModel.findOne({ email });
+    if (!isUserExist) {
+      throw new AppError(httpStatus.NOT_FOUND, 'User is not found');
+    }
+  
+    const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
+    const expirationTime = Date.now() + 2 * 60 * 1000; // OTP expires in 2 minutes
+  
+    // Update OTP and expiration time directly in MongoDB
+    await UserModel.updateOne(
+      { email },
+      {
+        $set: {
+          otp,
+          otpExpiration: expirationTime,
+        },
+      }
+    );
+  
+    // Send the OTP via email
+    sendEmail(email, `Your OTP code is ${otp}. It will expire in 2 minutes.`);
+  
+    // Automatically clear the OTP after 2 minutes using async/await in setTimeout
+    setTimeout(async () => {
+      try {
+        const result = await UserModel.updateOne(
+          { email, otpExpiration: { $lte: Date.now() } }, // Ensure it only clears if expiration has passed
+          { $unset: { otp: 1, otpExpiration: 1 } } // Remove OTP and expiration time
+        );
+        if (result.modifiedCount > 0) {
+          console.log(`OTP cleared for ${email} after 2 minutes`);
+        } else {
+          console.log(`OTP for ${email} was not cleared because the expiration time was not reached`);
+        }
+      } catch (error) {
+        console.error(`Failed to clear OTP for ${email}:`, error);
+      }
+    }, 2 * 60 * 1000); // 2 minutes in milliseconds
+  };
+// verify the sending otp and verify it 
+  const verifyOtp = async (email: string, otp: string) => {
+    const isUserExist = await UserModel.findOne({ email });
+    if (!isUserExist) {
+      throw new AppError(httpStatus.NOT_FOUND, 'User is not found');
+    }
+  
+    if (!isUserExist.otp || !isUserExist.otpExpiration) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'OTP not found or expired');
+    }
+  
+    const currentTime = Date.now(); // Get the current time in milliseconds
+    if (isUserExist.otp !== otp) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Invalid OTP');
+    }
+  
+    if (currentTime > isUserExist.otpExpiration) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'OTP has expired. Please request a new one.');
+    }
+  
+    console.log('OTP verified successfully');
+    // OTP is valid, proceed to allow the user to reset password
+  };
+//reset password and update it 
+
+  const resetPassword = async (email: string, newPassword: string, reEnteredPassword: string) => {
+    console.log(email,newPassword,reEnteredPassword)
+      // Find the user by email
+      const isUserExist = await UserModel.findOne({ email });
+      if (!isUserExist) {
+          throw new AppError(httpStatus.NOT_FOUND, 'User not found');
+      }
+  
+      // Check if the new passwords match
+      if (newPassword !== reEnteredPassword) {
+          throw new AppError(httpStatus.BAD_REQUEST, 'Passwords do not match');
+      }
+  
+      const oldPassword = isUserExist.password; // Get the hashed password from the database
+  
+      // Compare the new password with the old hashed password
+      const isSameAsOldPassword = await bcrypt.compare(newPassword, oldPassword);
+      if (isSameAsOldPassword) {
+          throw new AppError(httpStatus.BAD_REQUEST, 'New password cannot be the same as the old password');
+      }
+  
+      // Hash the new password before updating
+      const saltRounds = 10; // You can adjust the salt rounds as needed
+      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+  
+      // Update the user's password directly in the database using `findOneAndUpdate`
+      await UserModel.findOneAndUpdate(
+          { email }, // Filter by the user's email
+          { password: hashedNewPassword }, // Update the password field with the new hashed password
+          { new: true } // Return the updated document (optional)
+      );
+      const firebaseUser = await admin.auth().getUserByEmail(email); // Get the Firebase user
+    await admin.auth().updateUser(firebaseUser.uid, {
+        password: newPassword, // Update password in Firebase
+    });
+      return console.log('Password reset successfully');
+  };
+  
+
+  // add clinic
+//   const createClinicIntoDB = async(payload:TAdmin)=>{
+//     const userData: Partial<TUser>={};
+//     userData.password = '123456'
+//     userData.role = 'admin'
+//     userData.email = payload?.email
+//     userData.image = payload?.image
+//     const isUserExist = await UserModel.findOne({email: payload.email})
+//     if(isUserExist){
+//         throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
+//     }
+//     const session = await mongoose.startSession();
+//     try{
+//         session.startTransaction();
+      
+//         // create a user
+//         const newUser = await UserModel.create([userData], {session})
+
+//         if(!newUser.length){
+//             throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
+//         }
+
+//         payload.user = newUser[0]._id
+
+      
+
+//         //create a Nurse 
+//         const newAdmin = await AdminModel.create([payload], {session})
+//         if(!newAdmin.length){
+//             throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Admin')
+//         }
+//         await session.commitTransaction();
+//         await session.endSession()
+//         return newAdmin;
+//     }catch(err:any){
+//         await session.abortTransaction();
+//         await session.endSession()
+//         throw new Error(err)
+//     }
+// }
+
+
+
 const createDoctorIntoDB = async(payload:TDoctor)=>{
     // create a user Object 
     const userData: Partial<TUser>={};
     userData.password = '123'
     userData.role = 'doctor'
-
+    userData.email = payload?.email
+    const isUserExist = await UserModel.findOne({email: payload.email})
+    if(isUserExist){
+        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
+    }
     const session = await mongoose.startSession();
     try{
         session.startTransaction();
@@ -83,6 +242,11 @@ const createNurseIntoDB = async(payload:TNurse)=>{
     const userData: Partial<TUser>={};
     userData.password = '123'
     userData.role = 'nurse'
+    userData.email = payload?.email
+    const isUserExist = await UserModel.findOne({email: payload.email})
+    if(isUserExist){
+        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
+    }
     const session = await mongoose.startSession();
     try{
         session.startTransaction();
@@ -125,8 +289,14 @@ const createNurseIntoDB = async(payload:TNurse)=>{
 }
 const createPatientIntoDB = async(payload:TPatient)=>{
     const userData: Partial<TUser>={};
-    userData.password = '1231'
+    userData.password = '123456'
     userData.role = 'patient'
+    userData.email = payload?.email
+    userData.image = payload?.image
+    const isUserExist = await UserModel.findOne({email: payload.email})
+    if(isUserExist){
+        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
+    }
     const session = await mongoose.startSession();
     try{
         session.startTransaction();
@@ -156,6 +326,46 @@ const createPatientIntoDB = async(payload:TPatient)=>{
         throw new Error(err)
     }
 }
+const createAdminIntoDB = async(payload:TAdmin)=>{
+    const userData: Partial<TUser>={};
+    userData.password = '123456'
+    userData.role = 'admin'
+    userData.email = payload?.email
+    userData.image = payload?.image
+    const isUserExist = await UserModel.findOne({email: payload.email})
+    if(isUserExist){
+        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
+    }
+    const session = await mongoose.startSession();
+    try{
+        session.startTransaction();
+      
+        // create a user
+        const newUser = await UserModel.create([userData], {session})
+
+        if(!newUser.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
+        }
+
+        payload.user = newUser[0]._id
+
+      
+
+        //create a Nurse 
+        const newAdmin = await AdminModel.create([payload], {session})
+        if(!newAdmin.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Admin')
+        }
+        await session.commitTransaction();
+        await session.endSession()
+        return newAdmin;
+    }catch(err:any){
+        await session.abortTransaction();
+        await session.endSession()
+        throw new Error(err)
+    }
+}
+
 export const UserService={
-  getAllUserFromDB, loginUser, createDoctorIntoDB, createNurseIntoDB, createPatientIntoDB
+  getAllUserFromDB, loginUser, createDoctorIntoDB, createNurseIntoDB, createPatientIntoDB, createAdminIntoDB, forgetPassword, verifyOtp, resetPassword
 } 

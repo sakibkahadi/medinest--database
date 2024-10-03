@@ -8,6 +8,8 @@ import { MedicineRoutes } from "../modules/Medicine/Medicine.route";
 import { DepartmentRoutes } from "../modules/Department/Department.route";
 import { NurseRoutes } from "../modules/Nurse/Nurse.route";
 import { PatientRoutes } from "../modules/Patient/Patient.route";
+import { AdminRoutes } from "../modules/Admin/Admin.route";
+import { ClinicRoutes } from "../modules/Clinic/Clinic.route";
 const router = Router();
 const moduleRoutes = [
     {
@@ -44,6 +46,14 @@ const moduleRoutes = [
     }, {
         path:'/patients',
         route:PatientRoutes 
+    }
+    
+    ,{
+        path:'/admins',
+        route:AdminRoutes 
+    },{
+        path:'/clinics',
+        route:ClinicRoutes
     }
     
 ]
