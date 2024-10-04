@@ -35,7 +35,7 @@ type:String, required:true
     seenNotification:{
         type:Boolean,
         default: false
-    },bloodDonor:{
+    },isBloodDonor:{
         type:Boolean,
         default:false
     },otp: {

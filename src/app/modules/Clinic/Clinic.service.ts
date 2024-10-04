@@ -22,6 +22,9 @@ const clinicId = await generateClinicId()
   }
   const getSingleClinicFromDB= async(_id:string)=>{
     const result = await ClinicMOdel.findById(_id)
+    if(!result){
+      throw new AppError(httpStatus.NOT_FOUND, 'Clinic is not found')
+    }
     return result
   }
   const updateClinicIntoDB= async(id:string, payload:Partial<TClinic>)=>{

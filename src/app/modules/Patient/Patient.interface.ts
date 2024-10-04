@@ -8,7 +8,7 @@ export type TPatient={
     email:string;
     image:string;
     address?:string;
-    contactNo?:string;
+    phoneNumber?:string;
     sex?: 'male' | 'female' | 'others';
    birthDate: string;
    age: number;

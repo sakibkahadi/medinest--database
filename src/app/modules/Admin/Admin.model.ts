@@ -10,6 +10,10 @@ const adminSchema = new Schema<TAdmin>({
        type: Schema.Types.ObjectId, ref: 'User',
         required:[true,  'userId is required'], unique:true,
     },
+    clinicName:{
+       type: Schema.Types.ObjectId, ref: 'Clinic',
+        required:[true,  'Clinic name is required'], 
+    },
     name:{
         type:String,
         required:[true, 'name is required']
@@ -23,12 +27,9 @@ const adminSchema = new Schema<TAdmin>({
     image:{
         type:String, required:[true, ' is required'],
     },
-    address:{
-        type:String,
-       
-    },
+    
    
-    contactNo:{
+   phoneNumber:{
         type:String,
         
     },
@@ -36,12 +37,7 @@ const adminSchema = new Schema<TAdmin>({
     type:String,
     enum:['male' , 'female' , 'others'],
  },
-birthDate:{
-    type:String
-},
-age:{
-    type:Number
-},
+
 bloodGroup:{
     type:String,
     enum: ['A+' , 'A-' , 'B+' , 'B-' , 'AB+' , 'AB-' , 'O+' , 'O-']

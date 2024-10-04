@@ -26,7 +26,7 @@ const patientSchema = new Schema<TPatient>({
        
     },
    
-    contactNo:{
+    phoneNumber:{
         type:String,
         
     },

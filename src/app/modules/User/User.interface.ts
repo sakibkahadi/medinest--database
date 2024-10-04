@@ -12,7 +12,7 @@ export type TUser = {
     isDeleted: boolean,
     notification: string[]
     seenNotification: boolean,
-    bloodDonor: boolean,
+    isBloodDonor: boolean,
     otp:string,
     otpExpiration:number | undefined
 }

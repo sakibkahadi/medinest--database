@@ -15,7 +15,7 @@ const getAllUsers = catchAsync(async (req,res)=>{
     })
 })
 
-const loginUser = catchAsync(async(req,res,next)=>{
+const loginUser = catchAsync(async(req,res)=>{
     const result = await UserService.loginUser(req.body);
     const {isUserExist, accessToken} = result
     sendResponse(res,{
@@ -84,9 +84,11 @@ const createNurse = catchAsync(async(req,res)=>{
         data:result
     })
 })
+
+//password
 const createPatient = catchAsync(async(req,res)=>{
- 
-    const result = await UserService.createPatientIntoDB(req.body);
+ const {email, password} = req.body
+    const result = await UserService.createPatientIntoDB(email, password, req.body);
     sendResponse(res,{
         statusCode:httpStatus.OK,
         success:true,
@@ -94,9 +96,12 @@ const createPatient = catchAsync(async(req,res)=>{
         data:result
     })
 })
+
+//admin
 const createAdmin = catchAsync(async(req,res)=>{
- 
-    const result = await UserService.createAdminIntoDB(req.body);
+    const {email,password} = req.body
+
+    const result = await UserService.createAdminIntoDB(email, password,req.body);
     sendResponse(res,{
         statusCode:httpStatus.OK,
         success:true,

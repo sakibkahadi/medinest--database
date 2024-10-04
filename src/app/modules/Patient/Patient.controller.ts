@@ -13,8 +13,28 @@ const getAllPatient = catchAsync(async (req,res)=>{
         data:result
     })
 })
+const getSinglePatient = catchAsync(async (req,res)=>{
+    const {id} = req.params
+    const result = await PatientServices.getSinglePatientFromDB(id)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'Patient  retrieve Successfully',
+        data:result
+    })
+})
+const updatePatient = catchAsync(async (req,res)=>{
+    const {id} = req.params
+    const result = await PatientServices.updatePatientIntoDB(id, req.body)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'Patient  updated Successfully',
+        data:result
+    })
+})
 
 
 export const PatientControllers = {
-     getAllPatient
+     getAllPatient, updatePatient,getSinglePatient
 }

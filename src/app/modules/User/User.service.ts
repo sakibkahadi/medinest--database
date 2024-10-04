@@ -18,6 +18,7 @@ import { AdminModel } from "../Admin/Admin.model";
 import { sendEmail } from "../../utils/sendEmail";
 import bcrypt from 'bcrypt'; // Import bcrypt
 import admin from 'firebase-admin'
+import { calculateAgeInYearsAndMonths } from "./User.utils";
 
 //get all users
 const getAllUserFromDB= async()=>{
@@ -201,6 +202,7 @@ const createDoctorIntoDB = async(payload:TDoctor)=>{
     userData.password = '123'
     userData.role = 'doctor'
     userData.email = payload?.email
+    
     const isUserExist = await UserModel.findOne({email: payload.email})
     if(isUserExist){
         throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
@@ -287,9 +289,12 @@ const createNurseIntoDB = async(payload:TNurse)=>{
         throw new Error(err)
     }
 }
-const createPatientIntoDB = async(payload:TPatient)=>{
+
+//create patient
+const createPatientIntoDB = async(email:string, password:string, payload:TPatient)=>{
     const userData: Partial<TUser>={};
-    userData.password = '123456'
+    userData.password = password || (config.default_password as string)
+    
     userData.role = 'patient'
     userData.email = payload?.email
     userData.image = payload?.image
@@ -310,13 +315,21 @@ const createPatientIntoDB = async(payload:TPatient)=>{
 
         payload.user = newUser[0]._id
 
-      
+        if (payload.birthDate) {
+          const { years } = calculateAgeInYearsAndMonths(payload.birthDate);
+          payload.age = years; // Add calculated years to the payload
+           // You can store months separately if needed
+        }
 
         //create a Nurse 
         const newPatient = await PatientModel.create([payload], {session})
         if(!newPatient.length){
             throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Patient')
         }
+        await admin.auth().createUser({
+          email: email,
+          password: password,
+        });
         await session.commitTransaction();
         await session.endSession()
         return newPatient;
@@ -326,12 +339,16 @@ const createPatientIntoDB = async(payload:TPatient)=>{
         throw new Error(err)
     }
 }
-const createAdminIntoDB = async(payload:TAdmin)=>{
+
+
+//create admin
+const createAdminIntoDB = async(email:string, password:string,payload:TAdmin)=>{
     const userData: Partial<TUser>={};
-    userData.password = '123456'
+    userData.password = password || (config.default_password as string)
     userData.role = 'admin'
     userData.email = payload?.email
     userData.image = payload?.image
+    
     const isUserExist = await UserModel.findOne({email: payload.email})
     if(isUserExist){
         throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
@@ -351,11 +368,15 @@ const createAdminIntoDB = async(payload:TAdmin)=>{
 
       
 
-        //create a Nurse 
+        //create a Admin
         const newAdmin = await AdminModel.create([payload], {session})
         if(!newAdmin.length){
             throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Admin')
         }
+        await admin.auth().createUser({
+          email: email,
+          password: password,
+        });
         await session.commitTransaction();
         await session.endSession()
         return newAdmin;
