@@ -9,8 +9,7 @@ import { TDoctor } from "../Doctor/Doctor.interface";
 import mongoose from "mongoose";
 import { DoctorModel } from "../Doctor/Doctor.model";
 import { DepartmentModel } from "../Department/Department.model";
-import { TNurse } from "../Nurse/Nurse.interface";
-import { NurseModel } from "../Nurse/Nurse.model";
+
 import { TPatient } from "../Patient/Patient.interface";
 import { PatientModel } from "../Patient/Patient.model";
 import { TAdmin } from "../Admin/Admin.interface";
@@ -19,18 +18,197 @@ import { sendEmail } from "../../utils/sendEmail";
 import bcrypt from 'bcrypt'; // Import bcrypt
 import admin from 'firebase-admin'
 import { calculateAgeInYearsAndMonths } from "./User.utils";
+import { ClinicMOdel } from "../Clinic/Clinic.model";
+import { TSuperAdmin } from "../superAdmin/SuperAdmin.interface";
+import { superAdminModel } from "../superAdmin/SuperAdmin.model";
 
 //get all users
-const getAllUserFromDB= async()=>{
-    const result = await UserModel.find()
-    return result
-}
+const getAllUserFromDB = async () => {
+  try {
+    const users = await UserModel.aggregate([
+      // Lookup for superAdmin info
+      {
+        $lookup: {
+          from: 'superadmins',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'superadminInfo',
+        },
+      },
+      // Lookup for admin info
+      {
+        $lookup: {
+          from: 'admins',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'adminInfo',
+        },
+      },
+      // Lookup for patient info
+      {
+        $lookup: {
+          from: 'patients',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'patientInfo',
+        },
+      },
+      // Lookup for doctor info
+      {
+        $lookup: {
+          from: 'doctors',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'doctorInfo',
+        },
+      },
+      // Projecting necessary fields and extracting names and phone numbers
+      {
+        $project: {
+          email: 1,
+          role: 1,
+          status: 1,
+          image: 1,
+          // Extract the first element from each role-specific info array for name
+          adminName: { $arrayElemAt: ['$adminInfo.name', 0] },
+          superadminName: { $arrayElemAt: ['$superadminInfo.name', 0] },
+          patientName: { $arrayElemAt: ['$patientInfo.name', 0] },
+          doctorName: { $arrayElemAt: ['$doctorInfo.name', 0] },
+          // Extract the first element for phone numbers
+          adminPhone: { $arrayElemAt: ['$adminInfo.phoneNumber', 0] },
+          superadminPhone: { $arrayElemAt: ['$superadminInfo.phoneNumber', 0] },
+          patientPhone: { $arrayElemAt: ['$patientInfo.phoneNumber', 0] },
+          doctorPhone: { $arrayElemAt: ['$doctorInfo.phoneNumber', 0] },
+        },
+      },
+      // Add fields 'name' and 'phoneNumber' based on the user's role
+      {
+        $addFields: {
+          name: {
+            $cond: [
+              { $eq: ['$role', 'admin'] }, '$adminName',
+              {
+                $cond: [
+                  { $eq: ['$role', 'patient'] }, '$patientName',
+                  {
+                    $cond: [
+                      { $eq: ['$role', 'doctor'] }, '$doctorName',
+                      {
+                        $cond: [
+                          { $eq: ['$role', 'superAdmin'] }, '$superadminName',
+                          'N/A', // Default value if no match is found
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+          phoneNumber: {
+            $cond: [
+              { $eq: ['$role', 'admin'] }, '$adminPhone',
+              {
+                $cond: [
+                  { $eq: ['$role', 'patient'] }, '$patientPhone',
+                  {
+                    $cond: [
+                      { $eq: ['$role', 'doctor'] }, '$doctorPhone',
+                      {
+                        $cond: [
+                          { $eq: ['$role', 'superAdmin'] }, '$superadminPhone',
+                          'N/A', // Default value if no match is found
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+    ]);
+
+    return users;
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    throw error;
+  }
+};
+
+
+const getSingleUserFromDB = async (email: string) => {
+  try {
+    // Fetch the user from the User collection
+    const user = await UserModel.findOne({ email: email }).lean();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Initialize a variable to store additional user details
+    let additionalInfo = {};
+
+    // Fetch additional information based on the user's role
+    if (user.role === 'admin') {
+      const admin = await AdminModel.findOne({ user: user._id }).lean();
+      if (admin) {
+        additionalInfo = { name: admin.name };
+      }
+    } else if (user.role === 'doctor') {
+      const doctor = await DoctorModel.findOne({ user: user._id }).lean();
+      if (doctor) {
+        additionalInfo = { name: doctor.name };
+      }
+    } else if (user.role === 'patient') {
+      const patient = await PatientModel.findOne({ user: user._id }).lean();
+      if (patient) {
+        additionalInfo = { name: patient.name };
+      }
+    } else if (user.role === 'superAdmin') {
+      const superAdmin = await superAdminModel.findOne({ user: user._id }).lean();
+      if (superAdmin) {
+        additionalInfo = { name: superAdmin.name };
+      }
+    }
+
+    // Combine user information with additional information
+    return { ...user, ...additionalInfo };
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    throw error;
+  }
+};
+
+const UpdateSingleUserFromDB = async (id: string) => {
+  const isUserExist = await UserModel.findById(id);
+
+  if (!isUserExist) {
+    throw new AppError(httpStatus.NOT_FOUND, 'User does not exist');
+  }
+
+  // Toggle status between 'active' and 'blocked'
+  const newStatus = isUserExist.status === 'active' ? 'blocked' : 'active';
+
+  const updatedUser = await UserModel.findByIdAndUpdate(
+    { _id: id },
+    { status: newStatus }, // Set the new status
+    { new: true }
+  );
+
+  return updatedUser;
+};
+
 
 //log in user
 const loginUser = async(payload:TLoginUser)=>{
     const isUserExist = await UserModel.findOne({email:payload?.email}).select('+password')
     if(!isUserExist){
         throw new AppError(httpStatus.NOT_FOUND, 'User is not found')
+    }
+    if(isUserExist.status === 'blocked'){
+      throw new AppError(httpStatus.UNAUTHORIZED, 'User is blocked')
     }
     const isPasswordMatched = await UserModel.isPasswordMatched(payload?.password, isUserExist?.password)
     if(!isPasswordMatched){
@@ -153,142 +331,107 @@ const forgetPassword = async (email: string) => {
   };
   
 
-  // add clinic
-//   const createClinicIntoDB = async(payload:TAdmin)=>{
-//     const userData: Partial<TUser>={};
-//     userData.password = '123456'
-//     userData.role = 'admin'
-//     userData.email = payload?.email
-//     userData.image = payload?.image
-//     const isUserExist = await UserModel.findOne({email: payload.email})
-//     if(isUserExist){
-//         throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
-//     }
-//     const session = await mongoose.startSession();
-//     try{
-//         session.startTransaction();
+  
+
+
+
+const createDoctorIntoDB = async (email: string, password: string, payload: TDoctor) => {
+  // Create a user object
+  const userData: Partial<TUser> = {};
+  userData.password = password || (config.default_password as string);
+  userData.role = 'doctor';
+  userData.email = payload?.email;
+  userData.image = payload?.image;
+
+  const isUserExist = await UserModel.findOne({ email: payload.email });
+  if (isUserExist) {
+      throw new AppError(httpStatus.NOT_ACCEPTABLE, 'User already exists');
+  }
+
+  const session = await mongoose.startSession();
+  try {
+      session.startTransaction();
+
+      // Create a user
+      const newUser = await UserModel.create([userData], { session });
+
+      if (!newUser.length) {
+          throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create user');
+      }
+
+      payload.user = newUser[0]._id;
+
+      // Check department
+      const isDepartmentExist = await DepartmentModel.findOne({ _id: payload?.department });
+
+      if (!isDepartmentExist) {
+          throw new AppError(httpStatus.BAD_REQUEST, 'Department does not exist');
+      }
+
+      // Check if startTime and endTime are provided
+      if (!payload?.startTime || !payload?.endTime) {
+          throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Start time and end time are required');
+      }
+
+      // Parse `startTime` and `endTime`
+      const [startHours, startMinutes] = payload.startTime.split(':').map(Number);
+      const [endHours, endMinutes] = payload.endTime.split(':').map(Number);
+
+      const startDate = new Date();
+      startDate.setHours(startHours, startMinutes, 0, 0);
+
+      const endDate = new Date();
+      endDate.setHours(endHours, endMinutes, 0, 0);
+
+      // Validate that the start time is before the end time
+      if (startDate >= endDate) {
+          throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Start time must be before end time');
+      }
+
+      // Check if a schedule with the same startTime and endTime exists
       
-//         // create a user
-//         const newUser = await UserModel.create([userData], {session})
+      // Generate 30-minute intervals between `startTime` and `endTime`
+      const intervals: string[] = [];
+      const currentTime = new Date(startDate);
 
-//         if(!newUser.length){
-//             throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
-//         }
+      while (currentTime < endDate) {
+          const formattedTime = currentTime.toTimeString().slice(0, 5); // Extract "HH:mm"
+          intervals.push(formattedTime);
 
-//         payload.user = newUser[0]._id
+          // Add 30 minutes to the current time
+          currentTime.setMinutes(currentTime.getMinutes() + 30);
+      }
+      intervals.push(endDate.toTimeString().slice(0, 5)); // Add the end time as well
 
+      // Log the intervals for debugging
       
 
-//         //create a Nurse 
-//         const newAdmin = await AdminModel.create([payload], {session})
-//         if(!newAdmin.length){
-//             throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Admin')
-//         }
-//         await session.commitTransaction();
-//         await session.endSession()
-//         return newAdmin;
-//     }catch(err:any){
-//         await session.abortTransaction();
-//         await session.endSession()
-//         throw new Error(err)
-//     }
-// }
+      // Add the intervals to the payload
+      payload.intervals = intervals;
 
+      // Create a doctor with intervals
+      const newDoctor = await DoctorModel.create([payload], { session });
 
+      if (!newDoctor.length) {
+          throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create doctor');
+      }
 
-const createDoctorIntoDB = async(payload:TDoctor)=>{
-    // create a user Object 
-    const userData: Partial<TUser>={};
-    userData.password = '123'
-    userData.role = 'doctor'
-    userData.email = payload?.email
-    
-    const isUserExist = await UserModel.findOne({email: payload.email})
-    if(isUserExist){
-        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
-    }
-    const session = await mongoose.startSession();
-    try{
-        session.startTransaction();
-      
-        // create a user
-        const newUser = await UserModel.create([userData], {session})
+      await admin.auth().createUser({
+          email: email,
+          password: config.default_password,
+      });
 
-        if(!newUser.length){
-            throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
-        }
+      await session.commitTransaction();
+      session.endSession();
 
-        payload.user = newUser[0]._id
+      return newDoctor;
+  } catch (err: any) {
+      await session.abortTransaction();
+      session.endSession();
+      throw new Error(err);
+  }
+};
 
-        //check department
-        const isDepartmentExist  = await DepartmentModel.findOne({_id:payload?.department})
-
-   if(!isDepartmentExist){
-    throw new AppError(httpStatus.BAD_REQUEST, 'Department is not exist')
-   }
-        //create a doctor 
-        const newDoctor = await DoctorModel.create([payload], {session})
-        if(!newDoctor.length){
-            throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create doctor')
-        }
-        await session.commitTransaction();
-        await session.endSession()
-        return newDoctor;
-    }catch(err:any){
-        await session.abortTransaction();
-        await session.endSession()
-        throw new Error(err)
-    }
-}
-const createNurseIntoDB = async(payload:TNurse)=>{
-    const userData: Partial<TUser>={};
-    userData.password = '123'
-    userData.role = 'nurse'
-    userData.email = payload?.email
-    const isUserExist = await UserModel.findOne({email: payload.email})
-    if(isUserExist){
-        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
-    }
-    const session = await mongoose.startSession();
-    try{
-        session.startTransaction();
-      
-        // create a user
-        const newUser = await UserModel.create([userData], {session})
-
-        if(!newUser.length){
-            throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
-        }
-
-        payload.user = newUser[0]._id
-
-        //check department
-        
-    
-   //check doctor
-   const isDoctorExist = await DoctorModel.findOne({_id: payload.doctor})
-   if(!isDoctorExist){
-    throw new AppError(httpStatus.BAD_REQUEST, 'Doctor is not exist')
-   }
-
-// check doctor department 
-   // Set nurse's department to the doctor's department
-   payload.department = isDoctorExist?.department;
-
-        //create a Nurse 
-        const newNurse = await NurseModel.create([payload], {session})
-        if(!newNurse.length){
-            throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Nurse')
-        }
-        await session.commitTransaction();
-        await session.endSession()
-        return newNurse;
-    }catch(err:any){
-        await session.abortTransaction();
-        await session.endSession()
-        throw new Error(err)
-    }
-}
 
 //create patient
 const createPatientIntoDB = async(email:string, password:string, payload:TPatient)=>{
@@ -321,7 +464,7 @@ const createPatientIntoDB = async(email:string, password:string, payload:TPatien
            // You can store months separately if needed
         }
 
-        //create a Nurse 
+        //create a patient 
         const newPatient = await PatientModel.create([payload], {session})
         if(!newPatient.length){
             throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create Patient')
@@ -342,17 +485,22 @@ const createPatientIntoDB = async(email:string, password:string, payload:TPatien
 
 
 //create admin
-const createAdminIntoDB = async(email:string, password:string,payload:TAdmin)=>{
+const createAdminIntoDB = async(email:string,  password:string,payload:TAdmin)=>{
     const userData: Partial<TUser>={};
     userData.password = password || (config.default_password as string)
     userData.role = 'admin'
     userData.email = payload?.email
     userData.image = payload?.image
     
+
     const isUserExist = await UserModel.findOne({email: payload.email})
     if(isUserExist){
         throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
     }
+    const isClinicExist = await ClinicMOdel.findById(payload.clinicName)
+    if(!isClinicExist){
+      throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Clinic is not exist')
+  }
     const session = await mongoose.startSession();
     try{
         session.startTransaction();
@@ -375,7 +523,7 @@ const createAdminIntoDB = async(email:string, password:string,payload:TAdmin)=>{
         }
         await admin.auth().createUser({
           email: email,
-          password: password,
+          password: config.default_password ,
         });
         await session.commitTransaction();
         await session.endSession()
@@ -386,7 +534,54 @@ const createAdminIntoDB = async(email:string, password:string,payload:TAdmin)=>{
         throw new Error(err)
     }
 }
+//create Super admin
+const createSuperAdminIntoDB = async(email:string,  password:string,payload:TSuperAdmin)=>{
+    const userData: Partial<TUser>={};
+    userData.password = password || (config.default_password as string)
+    userData.role = 'superAdmin'
+    userData.email = payload?.email
+    userData.image = payload?.image
+    
+
+    const isUserExist = await UserModel.findOne({email: payload.email})
+    if(isUserExist){
+        throw new AppError(httpStatus.NOT_ACCEPTABLE, 'user is already exist')
+    }
+    
+    const session = await mongoose.startSession();
+    try{
+        session.startTransaction();
+      
+        // create a user
+        const newUser = await UserModel.create([userData], {session})
+
+        if(!newUser.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'failed to create user')
+        }
+
+        payload.user = newUser[0]._id
+
+      
+
+        //create a super Admin
+        const newSuperAdmin = await superAdminModel.create([payload], {session})
+        if(!newSuperAdmin.length){
+            throw new AppError(httpStatus.BAD_REQUEST, 'Failed to create super Admin')
+        }
+        await admin.auth().createUser({
+          email: email,
+          password: config.default_password ,
+        });
+        await session.commitTransaction();
+        await session.endSession()
+        return newSuperAdmin;
+    }catch(err:any){
+        await session.abortTransaction();
+        await session.endSession()
+        throw new Error(err)
+    }
+}
 
 export const UserService={
-  getAllUserFromDB, loginUser, createDoctorIntoDB, createNurseIntoDB, createPatientIntoDB, createAdminIntoDB, forgetPassword, verifyOtp, resetPassword
+  getAllUserFromDB, loginUser, getSingleUserFromDB, createDoctorIntoDB,  createPatientIntoDB, createAdminIntoDB, forgetPassword, verifyOtp, resetPassword, UpdateSingleUserFromDB, createSuperAdminIntoDB
 } 

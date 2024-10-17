@@ -16,7 +16,7 @@ export type TLocation={
 }
 export type TClinic ={
     clinicId: string;
-   
+   clinicImage:string;
     clinicName:string;
     contact:TContact;
     location:TLocation;

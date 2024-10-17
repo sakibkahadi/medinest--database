@@ -11,7 +11,7 @@ const router = express.Router()
 
 router.get('/',  AdminControllers.getAllAdmin )
 router.get('/:id',  AdminControllers.getSingleAdmin )
-
+router.delete('/:id', AdminControllers.deleteAdmin)
 router.patch('/:id',validateRequest(AdminValidation.updateAdminSchemaValidation), AdminControllers.updateAdmin )
 
 

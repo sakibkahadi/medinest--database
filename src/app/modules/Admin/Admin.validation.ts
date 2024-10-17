@@ -12,7 +12,7 @@ const createAdminSchemaValidation = z.object({
        
         phoneNumber: z.string().min(1, "Phone number is required").regex(/^(?:\+8801|01)[3-9]\d{8}$/
 , "Invalid phone number format"),
-        sex: z.enum(['male', 'female', 'others']),
+        sex: z.enum(['male', 'female', 'others']).optional(),
       
         bloodGroup: z.enum(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']).optional(),
         isBloodDonor: z.boolean().optional(),

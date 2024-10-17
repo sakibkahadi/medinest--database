@@ -1,3 +1,4 @@
-export type TDepartment ={
-    departmentName: string
-}
+export type TDepartment = {
+  departmentName: string;
+  departmentDescription: string;
+};

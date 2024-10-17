@@ -19,7 +19,7 @@ const patientSchema = new Schema<TPatient>({
         unique:true
     },
     image:{
-        type:String, required:[true, ' is required'],
+        type:String, 
     },
     address:{
         type:String,

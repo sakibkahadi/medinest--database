@@ -4,7 +4,7 @@ import { TClinic, TContact, TLocation } from "./Clinic.interface";
 
 const ContactSchema = new Schema<TContact>({
     phoneNumber:{
-        type:String, unique:true
+        type:String,unique:true
     },
     email:{
         type:String, unique:true
@@ -38,7 +38,9 @@ const ClinicSchema = new Schema<TClinic>({
     clinicId:{
         type:String
     },
-   
+   clinicImage:{
+type:String
+   },
     clinicName:{
         type:String
     },contact:ContactSchema,

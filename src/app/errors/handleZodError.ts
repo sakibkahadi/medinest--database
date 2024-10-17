@@ -12,7 +12,7 @@ const handleZodError = (err:ZodError):TGenericErrorResponse=>{
     const statusCode = 400;
     return{
         statusCode,
-        message:'zod Error',
+        message:'zod Error is',
         errorSources,
         stack: config.node_env === 'development'? err?.stack : null,
     }

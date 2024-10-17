@@ -6,6 +6,8 @@ import { TDepartment } from "./Department.interface"
 const departmentSchema = new Schema<TDepartment>({
    departmentName: {
     type:String, required:[true,  'Department name is required'], unique:true,
+   }, departmentDescription:{
+      type:String, required:[true,  'Department description  is required'],
    }
 })
 

@@ -4,26 +4,35 @@ import { RequestAmbulanceRoutes } from "../modules/RequestAmbulance/RequestAmbul
 import { DoctorRoutes } from "../modules/Doctor/Doctor.route";
 import { UserRoutes } from "../modules/User/User.route";
 import { AppointmentRoutes } from "../modules/Appointment/Appointment.route";
-import { MedicineRoutes } from "../modules/Medicine/Medicine.route";
+import { CompanyRoutes, GenericRoutes, MedicineRoutes } from "../modules/Medicine/Medicine.route";
 import { DepartmentRoutes } from "../modules/Department/Department.route";
-import { NurseRoutes } from "../modules/Nurse/Nurse.route";
+
 import { PatientRoutes } from "../modules/Patient/Patient.route";
 import { AdminRoutes } from "../modules/Admin/Admin.route";
 import { ClinicRoutes } from "../modules/Clinic/Clinic.route";
+import { SuperAdminRoutes } from "../modules/superAdmin/SuperAdmin.route";
+import { BloodBankRoutes } from "../modules/BloodBank/BloodBank.route";
+
 const router = Router();
 const moduleRoutes = [
     {
         path: '/ambulances',
         route: AmbulanceRoutes
     }, {
-        path:'/requestedAmbulance',
+        path:'/requestedAmbulances',
         route: RequestAmbulanceRoutes
     },{
         path:'/departments',
         route: DepartmentRoutes
     },
-
-    
+{
+    path:'/superAdmins',
+    route:SuperAdminRoutes
+},
+    {
+        path:'/bloodBank',
+        route:BloodBankRoutes
+    },
     
     {
         path:'/doctors',
@@ -37,13 +46,19 @@ const moduleRoutes = [
         route: AppointmentRoutes
     },
     {
-        path:'/medicine',
+        path:'/medicines',
         route: MedicineRoutes
     },
     {
-        path:'/nurses',
-        route:NurseRoutes
-    }, {
+        path:'/companies',
+        route: CompanyRoutes
+    },
+    {
+        path:'/genericName',
+        route: GenericRoutes
+    },
+    
+     {
         path:'/patients',
         route:PatientRoutes 
     }

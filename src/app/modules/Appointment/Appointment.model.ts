@@ -1,25 +1,26 @@
-import { model, Schema } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 import { TAppointment } from "./Appointment.interface";
 import { Status } from "./Appointment.constant";
 
 const AppointmentSchema = new Schema<TAppointment>(
     {
-        doctorId:{
-            type: Schema.Types.ObjectId,
+        doctorName:{
+            type: mongoose.Schema.Types.ObjectId,
             ref: 'Doctor', required:true
         },
-        patientId:{
-            type: Schema.Types.ObjectId,
-            ref:'User',required:true
+        patientName:{
+            type: String,required:true
+        }, patientEmail:{
+            type:String
         },
         appointmentDate: {
-            type:Date, required:true
+            type:String, required:true
         },
-        timeSlot:{
+        appointmentTime:{
             type:String, required:true
         },
         status:{
-            type:String, enum: Status, required:true
+            type:String, enum: Status, required:true, default:'pending'
         }
     },
     {timestamps:true}

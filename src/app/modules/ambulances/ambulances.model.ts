@@ -16,6 +16,10 @@ const smallDetailsSchema = new Schema<TSmallDetails>({
     },
 })
 const ambulancesSchema = new Schema<TAmbulance>({
+    admin: {
+        type: Schema.Types.ObjectId, ref: 'User',
+        required:[true,  'userId is required'], 
+    },
     title:{
         type:String,
         required:true,

@@ -2,10 +2,10 @@ import { z } from "zod";
 
 const createPatientValidationSchema = z.object({
   body: z.object({
-    user: z.string().min(1, "User ID is required"), // Refers to the user field in Mongoose schema
+    user: z.string().min(1, "User ID is required").optional(), // Refers to the user field in Mongoose schema
     name: z.string().min(1, "Name is required"), // Required field
     email: z.string().email("Invalid email address"), // Required and unique
-    image: z.string().min(1, "Image URL is required"), // Required field
+    image: z.string().min(1, "Image URL is required").optional(), // Required field
     address: z.string().optional(), // Optional field
     phoneNumber: z
       .string()

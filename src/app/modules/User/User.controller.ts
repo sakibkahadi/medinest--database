@@ -15,6 +15,29 @@ const getAllUsers = catchAsync(async (req,res)=>{
     })
 })
 
+const getSingleUser =catchAsync(async (req,res)=>{
+    const {email} = req.params
+    const result = await UserService.getSingleUserFromDB(email)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'User is retrieved Successfully',
+        data:result
+    })
+})
+
+const updateSingleUser = catchAsync(async (req,res)=>{
+    const {id} = req.body
+  
+    const result = await UserService.UpdateSingleUserFromDB(id)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'User  updated Successfully',
+        data:result
+    })
+})
+
 const loginUser = catchAsync(async(req,res)=>{
     const result = await UserService.loginUser(req.body);
     const {isUserExist, accessToken} = result
@@ -50,11 +73,11 @@ const verifyingOtp = catchAsync(async(req,res)=>{
     })
 })
 const resetPassword = catchAsync(async(req,res)=>{
-    console.log(req.body)
+  
     const userEmail = req.body.email
     const newPassword = req.body.newPassword
     const reEnteredPassword = req.body.reEnterPassword
-    console.log(userEmail,newPassword, reEnteredPassword)
+    
     const result = await UserService.resetPassword(userEmail, newPassword, reEnteredPassword)
     sendResponse(res,{
         statusCode:httpStatus.OK,
@@ -65,8 +88,8 @@ const resetPassword = catchAsync(async(req,res)=>{
     })
 })
 const createDoctor = catchAsync(async(req,res)=>{
- 
-    const result = await UserService.createDoctorIntoDB(req.body);
+    const {email, password} = req.body
+    const result = await UserService.createDoctorIntoDB(email, password, req.body);
     sendResponse(res,{
         statusCode:httpStatus.OK,
         success:true,
@@ -74,16 +97,7 @@ const createDoctor = catchAsync(async(req,res)=>{
         data:result
     })
 })
-const createNurse = catchAsync(async(req,res)=>{
- 
-    const result = await UserService.createNurseIntoDB(req.body);
-    sendResponse(res,{
-        statusCode:httpStatus.OK,
-        success:true,
-        message:'Nurse is create successfully',
-        data:result
-    })
-})
+
 
 //password
 const createPatient = catchAsync(async(req,res)=>{
@@ -99,7 +113,7 @@ const createPatient = catchAsync(async(req,res)=>{
 
 //admin
 const createAdmin = catchAsync(async(req,res)=>{
-    const {email,password} = req.body
+    const {email,password} = req.body;
 
     const result = await UserService.createAdminIntoDB(email, password,req.body);
     sendResponse(res,{
@@ -109,7 +123,19 @@ const createAdmin = catchAsync(async(req,res)=>{
         data:result
     })
 })
+// super admin
+const createSuperAdmin = catchAsync(async(req,res)=>{
+    const {email,password} = req.body;
+
+    const result = await UserService.createSuperAdminIntoDB(email, password,req.body);
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message:'super Admin is create successfully',
+        data:result
+    })
+})
 
 export const UserControllers={
-     getAllUsers, loginUser, createDoctor, createNurse, createPatient,createAdmin, forgetPassword,verifyingOtp,resetPassword
+     getAllUsers, getSingleUser, loginUser, createDoctor,createPatient,createAdmin, forgetPassword,verifyingOtp,resetPassword,updateSingleUser, createSuperAdmin
 }

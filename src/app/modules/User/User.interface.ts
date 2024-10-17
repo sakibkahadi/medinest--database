@@ -7,8 +7,8 @@ export type TUser = {
     email:string;
     password:string,
  image:string;
-    role: 'admin' | 'patient' | 'doctor' | 'nurse' 
-    status: 'active' | 'blocked' | 'in-progress'
+    role: 'superAdmin'| 'admin' | 'patient' | 'doctor' | 'nurse' 
+    status: 'active' | 'blocked' ;
     isDeleted: boolean,
     notification: string[]
     seenNotification: boolean,

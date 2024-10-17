@@ -14,8 +14,8 @@ const createAmbulance = catchAsync(async (req,res)=>{
     })
 })
 const getAllAmbulances = catchAsync(async (req,res)=>{
-    console.log(req.headers)
-    const result = await AmbulanceServices.getAllAmbulancesFromDB()
+    
+    const result = await AmbulanceServices.getAllAmbulancesFromDB(req.query)
     sendResponse(res,{
         statusCode:httpStatus.OK,
         success:true,
@@ -24,7 +24,38 @@ const getAllAmbulances = catchAsync(async (req,res)=>{
     })
 })
 
+const getSingleAmbulance = catchAsync(async (req,res)=>{
+    const {id} = req.params
+    const result = await AmbulanceServices.getSingleAmbulanceFromDB(id)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'Ambulance retrieve successfully',
+        data:result
+    })
+})
+const deleteAmbulance = catchAsync(async (req,res)=>{
+    const {id} = req.params
+    const result = await AmbulanceServices.deleteAmbulanceFromDB(id)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'Ambulance deleted successfully',
+        data:result
+    })
+})
+const updateAmbulance = catchAsync(async (req,res)=>{
+    const {id} = req.params
+        const result = await AmbulanceServices.updateAmbulanceIntoDB(id, req.body)
+        sendResponse(res,{
+            statusCode:httpStatus.OK,
+            success:true,
+            message: 'Ambulance  updated Successfully',
+            data:result
+        })
+    })
+
 
 export const ambulanceControllers = {
-    createAmbulance, getAllAmbulances
+    createAmbulance, getAllAmbulances, getSingleAmbulance, deleteAmbulance, updateAmbulance
 }

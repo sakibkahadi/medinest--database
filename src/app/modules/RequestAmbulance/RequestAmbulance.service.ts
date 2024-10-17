@@ -6,7 +6,7 @@ const createRequestAmbulanceIntoDB = async(payload:TRequestAmbulance)=>{
     return result
 }
 const getAllRequestAmbulancesFromDB = async()=>{
-    const result = await RequestAmbulanceModel.find()
+    const result = await RequestAmbulanceModel.find().populate('patient').populate('ambulance')
     return result
 }
 

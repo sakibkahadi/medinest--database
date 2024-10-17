@@ -5,7 +5,7 @@ import { AdminServices } from "./Admin.Service"
 
 const getAllAdmin = catchAsync(async (req,res)=>{
     
-    const result = await AdminServices.getAllAdminFromDB()
+    const result = await AdminServices.getAllAdminFromDB(req.query)
     sendResponse(res,{
         statusCode:httpStatus.OK,
         success:true,
@@ -34,7 +34,16 @@ const updateAdmin = catchAsync(async (req,res)=>{
     })
 })
 
-
+const deleteAdmin = catchAsync(async (req,res)=>{
+    const {id} = req.params
+        const result = await AdminServices.deleteAdminFromDB(id)
+        sendResponse(res,{
+            statusCode:httpStatus.OK,
+            success:true,
+            message: 'Admin deleted Successfully',
+            data:result
+        })
+    })
 export const AdminControllers = {
-     getAllAdmin, updateAdmin,getSingleAdmin
+     getAllAdmin, updateAdmin,getSingleAdmin,deleteAdmin
 }

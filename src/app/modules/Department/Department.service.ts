@@ -19,7 +19,28 @@ const getAllDepartmentsFromDB = async () => {
   const result = await DepartmentModel.find()
   return result;
 };
+const deleteDepartmentsFromDB =async (id:string) => {
+const isDepartmentExist = await DepartmentModel.findById(id)
+if(!isDepartmentExist){
+  throw new AppError(httpStatus.NOT_FOUND, 'Department is not exist ')
+}
+  const result = await DepartmentModel.findByIdAndDelete(id)
+  return result;
+};
+const updateDepartmentIntoDB = async( id:string, payload:Partial<TDepartment>)=>{
+  const isDepartmentExists = await DepartmentModel.findById(id)
+  if(!isDepartmentExists){
+      throw new AppError(httpStatus.NOT_FOUND, 'Department is not exist')
+  }
 
+  
+  const result = await DepartmentModel.findByIdAndUpdate(
+      { _id: id },
+      payload, // Set the new status
+      { new: true }
+    );
+    return result
+}
 export const DepartmentServices = {
-  createDepartmentIntoDB, getAllDepartmentsFromDB
+  createDepartmentIntoDB, getAllDepartmentsFromDB, deleteDepartmentsFromDB, updateDepartmentIntoDB
 };

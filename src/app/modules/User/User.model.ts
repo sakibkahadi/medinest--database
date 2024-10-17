@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import { TUser, UserStatic } from "./User.interface";
 import bcrypt from 'bcrypt'
 import config from "../../config";
-import { string } from "zod";
+
 
 const userSchema = new Schema<TUser, UserStatic>({
         email:{
@@ -13,16 +13,16 @@ type:String, require:true, unique:true
         required:true
     },
     image:{
-type:String, required:true
+type:String, 
     },
    role:{
         type:String,
-        enum:  ['admin' , 'patient' , 'doctor', 'nurse'],
+        enum:  ['superAdmin', 'admin' , 'patient' , 'doctor', 'nurse'],
        required:true
     },
     status:{
         type:String,
-        enum: ['active' , 'blocked', 'in-progress'],
+        enum: ['active' , 'blocked'],
         default:'active'
     },
     isDeleted:{
