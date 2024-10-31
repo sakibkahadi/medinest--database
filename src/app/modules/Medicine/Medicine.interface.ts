@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 export type TMedicine ={
+    admin:Types.ObjectId;
     productImage:string;
     productName: string;
     productCompany: Types.ObjectId;

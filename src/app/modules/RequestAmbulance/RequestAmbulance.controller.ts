@@ -21,7 +21,26 @@ const getAllRequestAmbulances = catchAsync(async (req,res)=>{
         data:result
     })
 })
-
+const updateRequestAmbulance = catchAsync(async (req,res)=>{
+    const {id} = req.params
+    const result = await RequestAmbulanceServices.updateRequestAmbulance(id,req.body)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'requested  updated Successfully',
+        data:result
+    })
+})
+const deleteRequestAmbulance = catchAsync(async (req,res)=>{
+    const {id} = req.params
+    const result = await RequestAmbulanceServices.deleteRequestAmbulance(id,)
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message: 'requested  deleted Successfully',
+        data:result
+    })
+})
 export const RequestAmbulanceControllers = {
-    createRequestAmbulance, getAllRequestAmbulances
+    createRequestAmbulance, getAllRequestAmbulances,updateRequestAmbulance, deleteRequestAmbulance
 }

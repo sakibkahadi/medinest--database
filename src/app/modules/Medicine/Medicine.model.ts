@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import { TMedicine, TMedicineCompany, TMedicineGenericName } from "./Medicine.interface";
 
 const medicineSchema = new Schema<TMedicine>({
-
+admin:{type:Schema.Types.ObjectId, ref:'SuperAdmin'},
     productImage: { type: String, required: true },
     productName: { type: String, required: true },
     productCompany: { type: Schema.Types.ObjectId, ref: 'Medicine-Company',

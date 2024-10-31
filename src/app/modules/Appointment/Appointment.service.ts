@@ -3,6 +3,7 @@ import AppError from "../../errors/AppError";
 import { TAppointment } from "./Appointment.interface";
 import { AppointmentModel } from "./Appointment.model";
 import { DoctorModel } from "../Doctor/Doctor.model";
+import { UserModel } from "../User/User.model";
 
 
 
@@ -50,7 +51,37 @@ const createAppointmentIntoDB = async (payload: TAppointment) => {
  
     return bookedTimes;
   };
+  const getAppointmentForUserFromDb = async(email:string, )=>{
+  
+    const isPatientExists = await UserModel.findOne({email})
+    if(!isPatientExists){
+      throw new AppError(httpStatus.NOT_FOUND, 'patient is not found')
+    }
+    const result = await AppointmentModel.find({patientEmail:email}).populate('doctorName')
+    console.log(result)
+    return result;
+  }
 
+  const updateAppointmentList = async(id:string, payload:Partial<TAppointment>)=>{
+    const isAppointmentExists = await AppointmentModel.findById(id)
+    if(!isAppointmentExists){
+      throw new AppError(httpStatus.NOT_FOUND, 'Appointment is not found')
+    }
+    const result = await AppointmentModel.findByIdAndUpdate(
+      id, // Use the id directly
+      payload, // The updated fields
+      { new: true, runValidators: true } // Return the updated document and run validation
+  );
+return result
+  }
+const deleteAppointmentFromDB = async(id:string)=>{
+  const isAppointmentExists = await AppointmentModel.findById(id)
+    if(!isAppointmentExists){
+      throw new AppError(httpStatus.NOT_FOUND, 'Appointment is not found')
+    }
+    const result= await AppointmentModel.findByIdAndDelete(id)
+    return result
+}
 export const AppointmentServices = {
-    createAppointmentIntoDB, getBookedTimesFromDB
+    createAppointmentIntoDB, getBookedTimesFromDB, getAppointmentForUserFromDb, updateAppointmentList,deleteAppointmentFromDB
 }

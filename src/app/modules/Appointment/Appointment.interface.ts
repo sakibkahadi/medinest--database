@@ -7,5 +7,6 @@ export type TAppointment ={
     patientEmail: string;
     appointmentDate: string;
     appointmentTime: string,
-    status: TStatus
+    status: TStatus;
+    price:string
 }

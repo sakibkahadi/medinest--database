@@ -248,7 +248,7 @@ const forgetPassword = async (email: string) => {
     );
   
     // Send the OTP via email
-    sendEmail(email, `Your OTP code is ${otp}. It will expire in 2 minutes.`);
+    sendEmail(email, `Your OTP code is ${otp}. It will expire in 2 minutes.`, "Reset your password within 2 mins");
   
     // Automatically clear the OTP after 2 minutes using async/await in setTimeout
     setTimeout(async () => {

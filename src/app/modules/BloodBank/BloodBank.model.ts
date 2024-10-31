@@ -15,7 +15,9 @@ bloodGroup:{
     type:String,
     enum: ['A+' , 'A-' , 'B+' , 'B-' , 'AB+' , 'AB-' , 'O+' , 'O-']
 }
-,
+,price:{
+    type:String
+},
    quantity:{
     type:String
    },

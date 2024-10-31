@@ -7,5 +7,7 @@ router.post('/create-appointment', validateRequest(AppointmentValidations.create
 AppointmentControllers.createAppointment)
 router.get('/booked-times', AppointmentControllers.getBookedTimes);
 
-
+router.get('/:email', AppointmentControllers.getAppointmentForUser)
+router.patch('/:id', AppointmentControllers.updateAppointmentList)
+router.delete('/:id', AppointmentControllers.deleteAppointment)
 export const AppointmentRoutes = router

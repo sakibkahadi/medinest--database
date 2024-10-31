@@ -3,6 +3,7 @@ const positiveDecimalRegex = /^[+]?\d*\.?\d+$/;
 // medicine validation
 export const createMedicineSchemaValidation = z.object({
   body: z.object({
+    admin:z.string().optional(),
     productImage:z.string().min(1, "Product Image is required"),
     productName: z.string().min(1, "Product name is required"),
     productCompany: z.string().min(1, "Product company is required"),
@@ -34,6 +35,7 @@ export const createMedicineSchemaValidation = z.object({
 })
 export const updateMedicineSchemaValidation = z.object({
   body: z.object({
+    admin:z.string().optional(),
     productImage:z.string().min(1, "Product Image is required").optional(),
     productName: z.string().min(1, "Product name is required").optional(),
     productCompany: z.string().min(1, "Product company is required").optional(),

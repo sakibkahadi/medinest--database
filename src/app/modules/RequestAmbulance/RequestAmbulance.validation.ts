@@ -28,7 +28,29 @@ export const createRequestedAmbulanceValidationSchema = z.object({
     }).default('pending'),
   })
 });
+export const updateRequestedAmbulanceValidationSchema = z.object({
+  body:z.object({
+    from:z.string().min(1,'Start destination is needed').optional(),
+    destination: z.string().min(1,'End destination is needed').optional(),
+    ambulance:z.string().optional().optional(),
+    patient:z.string().optional().optional(),
+    name:z.string().min(1,'Your name is required').optional(),
+    phoneNumber: z
+      .string()
+      .min(1, 'Phone number is required')
+      .regex(/^(?:\+8801|01)[3-9]\d{8}$/, 'Invalid phone number format').optional(), 
+    date: z
+      .string()
+      .regex(dateRegex, { message: "Date must be in DD/MM/YYYY format" }).optional(),
+   timeSlot: z
+   .string()
+   .regex(timeRegex, 'time must be in "HH:mm" format').optional(),
+    status: z.enum([...Status] as [string, ...string[]], {
+      required_error: "Status is required",
+    }).default('pending').optional(),
+  })
+});
 
 export const RequestedAmbulanceValidations = {
-  createRequestedAmbulanceValidationSchema,
+  createRequestedAmbulanceValidationSchema, updateRequestedAmbulanceValidationSchema
 };

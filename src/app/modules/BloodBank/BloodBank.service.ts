@@ -75,7 +75,7 @@ const getSingleBloodBankFromDb = async(id:string)=>{
   
 const getAllBloodBankFromDB= async(query:Record<string, unknown>)=>{
     const BloodBankQuery = new QueryBuilder(BloodBankModel.find().populate('clinicName'),query);
-    BloodBankQuery?.search(['clinicName'])
+    BloodBankQuery?.search(['bloodGroup'])
     const result = await BloodBankQuery.modelQuery;
     return result
   }

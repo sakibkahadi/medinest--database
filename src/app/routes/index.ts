@@ -12,6 +12,8 @@ import { AdminRoutes } from "../modules/Admin/Admin.route";
 import { ClinicRoutes } from "../modules/Clinic/Clinic.route";
 import { SuperAdminRoutes } from "../modules/superAdmin/SuperAdmin.route";
 import { BloodBankRoutes } from "../modules/BloodBank/BloodBank.route";
+import { PaymentRoutes } from "../modules/Payment/Payment.route";
+import { CartRoutes } from "../modules/Cart/Cart.router";
 
 const router = Router();
 const moduleRoutes = [
@@ -24,6 +26,15 @@ const moduleRoutes = [
     },{
         path:'/departments',
         route: DepartmentRoutes
+    },
+    {
+        path:'/payments',
+        route: PaymentRoutes
+    },
+    {
+path:'/carts',
+route:CartRoutes
+
     },
 {
     path:'/superAdmins',

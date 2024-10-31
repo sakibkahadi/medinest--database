@@ -15,7 +15,7 @@ const createAppointment = catchAsync(async(req,res,)=>{
 const getBookedTimes = catchAsync(async(req,res,)=>{
     const {doctorName, appointmentDate} = req.query
   
-    console.log(req.query)
+   
     
     const result = await AppointmentServices.getBookedTimesFromDB(doctorName as string, appointmentDate as string)
     sendResponse(res,{
@@ -26,7 +26,41 @@ const getBookedTimes = catchAsync(async(req,res,)=>{
     })
 })
 
+const getAppointmentForUser = catchAsync(async(req,res,)=>{
+    const {email } = req.params
+    
+    const result = await AppointmentServices.getAppointmentForUserFromDb(email);
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message:' Your appoints get successfully',
+        data:result
+    })
+})
+const updateAppointmentList = catchAsync(async(req,res,)=>{
+    const {id} = req.params
+    
+    const result = await AppointmentServices.updateAppointmentList(id, req.body);
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message:' appointment updated successfully',
+        data:result
+    })
+})
+const deleteAppointment = catchAsync(async(req,res,)=>{
+    const {id} = req.params
+    
+    const result = await AppointmentServices.deleteAppointmentFromDB(id);
+    sendResponse(res,{
+        statusCode:httpStatus.OK,
+        success:true,
+        message:' appointment deleted successfully',
+        data:result
+    })
+})
+
 
 export const AppointmentControllers ={
-    createAppointment,getBookedTimes
+    createAppointment,getBookedTimes, getAppointmentForUser, updateAppointmentList, deleteAppointment
 }

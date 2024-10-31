@@ -8,6 +8,9 @@ const AppointmentSchema = new Schema<TAppointment>(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Doctor', required:true
         },
+        price:{
+            type:String
+        },
         patientName:{
             type: String,required:true
         }, patientEmail:{
