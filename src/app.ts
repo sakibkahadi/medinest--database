@@ -6,11 +6,11 @@ import notFound from './app/middlewares/notFound';
 import admin, { ServiceAccount } from 'firebase-admin';
 
 import config from './app/config';
-
+import serviceAccount from '../serviceAccountKey.json'
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 // Initialize Firebase Admin with credentials
 admin.initializeApp({
-  credential: admin.credential.cert(config.google_application_credentials as ServiceAccount),
+  credential: admin.credential.cert( serviceAccount as ServiceAccount),
 });
 
 // Create Express app
