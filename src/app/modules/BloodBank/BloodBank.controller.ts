@@ -46,6 +46,16 @@ const updateBloodBank = catchAsync(async (req,res)=>{
             data:result
         })
     })
+const updateBloodQuantity = catchAsync(async (req,res)=>{
+    const {id} = req.params
+        const result = await BloodBankServices.updateBloodQuantityIntoDB(id, req.body)
+        sendResponse(res,{
+            statusCode:httpStatus.OK,
+            success:true,
+            message: 'Quantity  updated Successfully',
+            data:result
+        })
+    })
 const deleteBloodBank = catchAsync(async (req,res)=>{
     const {id} = req.params
         const result = await BloodBankServices.deleteBloodBankFromDB(id)
@@ -59,5 +69,5 @@ const deleteBloodBank = catchAsync(async (req,res)=>{
 
 
 export const BloodBankControllers = {
-    createBloodBank, updateBloodBank, getSingleBloodBank, getAllBloodBank,  deleteBloodBank
+    createBloodBank, updateBloodBank, getSingleBloodBank, getAllBloodBank,  deleteBloodBank, updateBloodQuantity
 }

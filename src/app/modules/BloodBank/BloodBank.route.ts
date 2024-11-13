@@ -13,8 +13,8 @@ const router = express.Router()
 router.post('/create-bloodBank' ,validateRequest(BloodBankValidations.createBloodBankValidationSchema), BloodBankControllers.createBloodBank)
 router.get('/', BloodBankControllers.getAllBloodBank)
 router.delete('/:id', BloodBankControllers.deleteBloodBank)
-router.patch('/:id', validateRequest(BloodBankValidations.updateBloodBankValidationSchema), BloodBankControllers.updateBloodBank)
+router.put('/:id', validateRequest(BloodBankValidations.updateBloodBankValidationSchema), BloodBankControllers.updateBloodBank)
 router.get('/:id', BloodBankControllers.getSingleBloodBank)
-
+router.patch('/:id', validateRequest(BloodBankValidations.updateBloodBankValidationSchema), BloodBankControllers.updateBloodQuantity)
 
 export const BloodBankRoutes = router;

@@ -5,9 +5,10 @@ import globalErrorHandlers from './app/middlewares/globalErrorhandler';
 import notFound from './app/middlewares/notFound';
 import admin, { ServiceAccount } from 'firebase-admin';
 
-import config from './app/config';
+
 import serviceAccount from '../serviceAccountKey.json'
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
+import Stripe from 'stripe';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, );
 // Initialize Firebase Admin with credentials
 admin.initializeApp({
   credential: admin.credential.cert( serviceAccount as ServiceAccount),

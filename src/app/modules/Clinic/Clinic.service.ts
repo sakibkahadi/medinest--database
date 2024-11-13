@@ -3,7 +3,7 @@ import AppError from "../../errors/AppError";
 import { TClinic } from "./Clinic.interface";
 import { ClinicMOdel } from "./Clinic.model";
 import { generateClinicId } from "./Clinic.utils";
-import { DoctorModel } from "../Doctor/Doctor.model";
+
 import { AdminModel } from "../Admin/Admin.model";
 import QueryBuilder from "../../builder/Querybuilder";
 

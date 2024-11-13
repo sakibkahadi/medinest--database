@@ -3,7 +3,7 @@ import AppError from "../../errors/AppError"
 import { MedicineModel } from "../Medicine/Medicine.model"
 import { TCart } from "./Cart.interface"
 import { CartModel } from "./Cart.model"
-import mongoose from "mongoose"
+
 
 const createCartIntoDB = async(payload:TCart)=>{
   const isMedicineExist = await MedicineModel.findById(payload?.productId)

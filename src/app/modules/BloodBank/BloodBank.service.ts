@@ -55,13 +55,40 @@ const updateBloodBankIntoDB = async (id: string, payload: Partial<TBlood>) => {
     payload.isAvailable = false
   }
   
+
+  
     const result = await BloodBankModel.findByIdAndUpdate(
-        id, // Use the id directly
-        payload, // The updated fields
-        { new: true, runValidators: true } // Return the updated document and run validation
+        id,
+        payload, 
+        { new: true, runValidators: true } 
     );
 
     return result;
+};
+const updateBloodQuantityIntoDB = async (id: string, payload: Partial<TBlood>) => {
+    // Find the existing BloodBank document.
+    const isBloodBankExists = await BloodBankModel.findById(id);
+    if (!isBloodBankExists) {
+        throw new AppError(httpStatus.NOT_FOUND, 'BloodBank does not exist');
+    }
+    let numberQuality = Number(isBloodBankExists.quantity)
+    if(numberQuality <= 0){
+    payload.isAvailable = false
+  }
+numberQuality = Number(isBloodBankExists.quantity )- Number(payload.quantity)
+if(numberQuality < 0 ){
+  throw new AppError(httpStatus.NOT_ACCEPTABLE, 'Quantity is over')
+}
+
+
+
+    const result = await BloodBankModel.findByIdAndUpdate(
+        id,
+       {quantity: numberQuality}, 
+        { new: true, runValidators: true } 
+    );
+return result
+   
 };
 
 // get single BloodBank
@@ -85,5 +112,5 @@ const getAllBloodBankFromDB= async(query:Record<string, unknown>)=>{
   
 
 export const BloodBankServices = {
-    createBloodBankIntoDB,getAllBloodBankFromDB,getSingleBloodBankFromDb, updateBloodBankIntoDB,deleteBloodBankFromDB
+    createBloodBankIntoDB,getAllBloodBankFromDB,getSingleBloodBankFromDb, updateBloodBankIntoDB,deleteBloodBankFromDB, updateBloodQuantityIntoDB
 }
