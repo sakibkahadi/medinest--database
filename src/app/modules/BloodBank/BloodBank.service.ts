@@ -45,26 +45,30 @@ const deleteBloodBankFromDB = async(id:string)=>{
     return result
 }
 const updateBloodBankIntoDB = async (id: string, payload: Partial<TBlood>) => {
-    // Find the existing BloodBank document.
-    const isBloodBankExists = await BloodBankModel.findById(id);
-    if (!isBloodBankExists) {
-        throw new AppError(httpStatus.NOT_FOUND, 'BloodBank does not exist');
-    }
-    const numberQuality = Number(isBloodBankExists.quantity)
-    if(numberQuality <= 0){
-    payload.isAvailable = false
+ 
+  const isBloodBankExists = await BloodBankModel.findById(id);
+  if (!isBloodBankExists) {
+      throw new AppError(httpStatus.NOT_FOUND, 'BloodBank does not exist');
   }
-  
 
-  
-    const result = await BloodBankModel.findByIdAndUpdate(
-        id,
-        payload, 
-        { new: true, runValidators: true } 
-    );
 
-    return result;
+  const numberQuality = Number(payload.quantity);
+  if (numberQuality <= 0) {
+      payload.isAvailable = false; 
+  } else {
+      payload.isAvailable = true;
+  }
+
+
+  const result = await BloodBankModel.findByIdAndUpdate(
+      id,
+      payload, 
+      { new: true, runValidators: true }
+  );
+
+  return result;
 };
+
 const updateBloodQuantityIntoDB = async (id: string, payload: Partial<TBlood>) => {
     // Find the existing BloodBank document.
     const isBloodBankExists = await BloodBankModel.findById(id);
